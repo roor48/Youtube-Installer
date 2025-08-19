@@ -7,3 +7,9 @@ uv.lock
 
 # 다운로드 한 파일 저장 경로
 downloads/
+
+# PyInstaller
+*.manifest
+*.spec
+build/
+dist/
