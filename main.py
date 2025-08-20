@@ -6,13 +6,14 @@ from threading import Thread
 def download_video(video_url: str):
     video_url = video_url.strip()
     ydl_opts = cli_to_api([
-        f'-f bestvideo[height<={quality.get()[:-1]}][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-        '-o %(title)s.%(ext)s',
-        f'-P {location}'
+        '-f', f'bestvideo[height<={quality.get()[:-1]}][ext=mp4]/bestvideo[height<={quality.get()[:-1]}]+bestaudio[ext=mp4]/bestaudio[ext=m4a]/bestaudio',
+        '-o', '%(title)s.%(ext)s',
+        '-P', location,
+        '--merge-output-format', 'mp4'
     ])
 
     with YoutubeDL(ydl_opts) as ydl:
-        Thread(target=ydl.download, args=([video_url])).start()
+        Thread(target=ydl.download, args=((video_url,))).start()
 
 
 root = Tk()
