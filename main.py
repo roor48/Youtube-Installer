@@ -9,7 +9,14 @@ def download_video(video_url: str):
     try:
         video_url = video_url.strip()
         ydl_opts = cli_to_api([
-            '-f', f'bestvideo[height<={quality.get()[:-1]}][ext=mp4]/bestvideo[height<={quality.get()[:-1]}]+bestaudio[ext=mp4]/bestaudio[ext=m4a]/bestaudio',
+            '-f', ( # **튜플 아님** 가독성을 위해 괄호 사용
+                # mp4 형식이 있을 때 오디오를 mp4, m4a, 기타 순으로 다운로드 시도
+                f"(bestvideo[height<={quality.get()[:-1]}][ext=mp4]+"
+                "bestaudio[ext=mp4]/bestaudio[ext=m4a]/bestaudio)/"
+                # mp4 형식이 없을 때 오디오를 mp4, m4a, 기타 순으로 다운로드 시도
+                f"(bestvideo[height<={quality.get()[:-1]}]+"
+                "bestaudio[ext=mp4]/bestaudio[ext=m4a]/bestaudio)"
+            ),
             '-o', '%(title)s.%(ext)s',
             '-P', location,
             '--merge-output-format', 'mp4'
