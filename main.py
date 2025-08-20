@@ -4,8 +4,6 @@ from tkinter import Tk, Label, Entry, Button, OptionMenu, StringVar, filedialog,
 from threading import Thread
 
 def download_video(video_url: str):
-    global totalVideoCount, downloadedCount
-
     try:
         video_url = video_url.strip()
         ydl_opts = cli_to_api([
@@ -23,15 +21,6 @@ def download_video(video_url: str):
         ])
         ydl_opts['progress_hooks'] = (progress_hook,)
 
-
-        with YoutubeDL({'quiet': True}) as ydl:
-            info_dict = ydl.extract_info(video_url, download=False)  # 다운로드 없이 정보만 가져오기
-            if 'entries' in info_dict:
-                totalVideoCount = len(info_dict['entries'])  # 재생목록 영상 수
-            else:
-                totalVideoCount = 1  # 단일 영상인 경우
-            downloadedCount = 0
-
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download((video_url,))
 
@@ -40,8 +29,9 @@ def download_video(video_url: str):
         videoProgress.set(0)
         totalProgress.set(0)
 
-def progress_hook(d):
-    global downloadedCount
+def progress_hook(d: dict):
+
+    info_dict: dict = d.get('info_dict', {})
 
     if d['status'] == 'downloading':
         percent = d.get('_percent', 0.0)
@@ -49,14 +39,10 @@ def progress_hook(d):
         if ( (videoProgress.get() >= 100) or (percent > videoProgress.get()) ):
             videoProgress.set(percent)
 
-    elif d['status'] == 'finished':
-        videoProgress.set(0)
-        downloadedCount += 1
-
-    totalProgress.set(downloadedCount / totalVideoCount * 100)
-    if downloadedCount == totalVideoCount:
+    if d['status'] == 'finished':
         videoProgress.set(100)
-        totalProgress.set(100)
+
+    totalProgress.set(info_dict.get('playlist_index', 1) / info_dict.get('playlist_count', 1) * 100)
 
 
 # GUI 설정
@@ -121,10 +107,6 @@ videoProgressBar.pack(pady=(10, 0))
 totalProgress = DoubleVar()
 totalProgressBar = ttk.Progressbar(root, style="custom.Horizontal.TProgressbar", maximum=100, variable=totalProgress, length=400)
 totalProgressBar.pack()
-
-# 다운로드 진행도
-totalVideoCount = 0
-downloadedCount = 0
 
 
 # 각 요소 스타일 지정
